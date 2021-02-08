@@ -1,1 +1,0 @@
-console.log('this is build base on webpack5')
