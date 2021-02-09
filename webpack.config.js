@@ -4,7 +4,9 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const TerserWebpackPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsWebpackPlugin = require('optimize-css-assets-webpack-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const { VueLoaderPlugin } = require('vue-loader/dist/index');
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 module.exports = {
     mode: 'development',
@@ -19,11 +21,17 @@ module.exports = {
         open: true,
         contentBase: '../dist'
     },
-    // 压缩js文件
+    resolve: {
+        extensions: [".ts", ".js", ".vue"],
+        alias: {
+            "@": path.resolve("src")
+        }
+    },
     optimization: {
         minimize: true,
         minimizer: [
-            new TerserWebpackPlugin()
+            new TerserWebpackPlugin(), // 压缩js
+            new CssMinimizerPlugin(), // 压缩css
         ]
     },
     module: {
@@ -52,7 +60,14 @@ module.exports = {
                     loader: 'babel-loader',
                     options: {
                         presets: [
-                            '@babel/preset-env'
+                            [
+                                '@babel/preset-env', // 兼容性处理
+                                {
+                                    useBuiltIns: 'usage',
+                                    corejs: { version: 3 },
+                                    targets: { chrome: "58", ie: "9" }
+                                }
+                            ]
                         ],
                         cacheDirectory: true
                     }
@@ -69,9 +84,10 @@ module.exports = {
             // 支持ts
             {
                 test: /\.ts$/,
-                use: [
-                    'ts-loader'
-                ]
+                use: [{
+                    loader: "ts-loader",
+                    options: { appendTsSuffixTo: [/\.vue$/] } // 识别vue文件中的ts
+                }]
             },
             // 处理静态资源
             {
@@ -147,15 +163,11 @@ module.exports = {
                 minifyURLs: true
             }
         }),
-        new CleanWebpackPlugin(),
+        new CleanWebpackPlugin(), // 打包前清除dist
         new MiniCssExtractPlugin({ // 生成css文件
             filename: 'css/[name].css'
         }),
-        new OptimizeCssAssetsWebpackPlugin({ // 压缩css文件
-            cssProcessorPluginOptions: {
-                preset: ['default', { discardComments: { removeAll: true } }]
-            }
-        }),
-        new VueLoaderPlugin()
+        new VueLoaderPlugin(),
+        new BundleAnalyzerPlugin() // 包体积分析
     ]
 }

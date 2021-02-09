@@ -1,17 +1,20 @@
 <template>
-    <div>
-        <div>解析Vue文件了哟~</div>
-        <p>{{name}}</p>
+    <div class="container">
+        <router-view></router-view>
     </div>
 </template>
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent } from 'vue';
+
 export default defineComponent({
     setup() {
-        const name = ref('txm')
         return {
-            name
         }
     }
 })
 </script>
+<style lang="scss" scoped>
+    .container {
+        background-color: skyblue;
+    }
+</style>
